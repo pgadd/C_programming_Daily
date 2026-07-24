@@ -24,7 +24,7 @@ void init_SPI_Driver(SPI_Config_t **configPtr){
     }
 
     SPI_Config_t *cfg = *configPtr;
-    cfg -> clock_speed_hz = 1000000;
+    (*configPtr) -> clock_speed_hz = 1000000;
     cfg -> mode =  0;
     cfg -> error_handler = on_error_callback;
 
