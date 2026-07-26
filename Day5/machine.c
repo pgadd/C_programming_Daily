@@ -1,3 +1,5 @@
+//State Machine implementation example
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -46,8 +48,45 @@ void on_system_reset(void){
     HW_STATUS_REG &= ~(1 << 7);
 }
 
-int main(void){
+const Transition_t fsm_table[] = {
+    {STATE_IDLE, EVT_COIN_INSERT, STATE_BREWING, &on_start_brew},
+    {STATE_BREWING, EVT_BREW_DONE, STATE_IDLE, &on_dispense_done},
+    {STATE_BREWING, EVT_OUT_OF_WATER, STATE_FAULT, &on_water_fault},
+    {STATE_FAULT, EVT_RESET, STATE_IDLE, &on_system_reset}
+};
 
+void send_event(MachineState_t *state_ptr, MachineEvent_t evt, const Transition_t *table, size_t table_size);
+void send_event(MachineState_t *state_ptr, MachineEvent_t evt, const Transition_t *table, size_t table_size){
+    int states = table_size;
+
+    for (int x = 0; x < states; x++){
+        if (table[x].current_state == *state_ptr && table[x].trigger_event == evt){
+            table[x].action_cb();
+
+            *state_ptr = table[x].next_state;
+            return;
+        } 
+    }
+
+     printf("-> [WARNING] Event ignored in current state.\n");
+
+
+}
+
+int main(void){
+    MachineState_t myMachine = STATE_IDLE;
+
+    send_event(&myMachine, EVT_COIN_INSERT, fsm_table, 4);
+    printf("Current state: %d\n", myMachine);
+
+    send_event(&myMachine, EVT_OUT_OF_WATER, fsm_table, 4);
+    printf("Current state: %d, current val: %X\n", myMachine, HW_STATUS_REG);
+
+    send_event(&myMachine, EVT_COIN_INSERT, fsm_table, 4);
+    printf("Current state: %d\n", myMachine);
+
+    send_event(&myMachine, EVT_RESET, fsm_table, 4);
+    printf("Current state: %d, current val: %X\n", myMachine, HW_STATUS_REG);
 
     return 0;
 }
