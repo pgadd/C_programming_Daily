@@ -42,11 +42,11 @@ CommandType_t parse_packet(uint8_t *raw_stream, ProtocolPacket_t *out_pkt) {
 
 int main(void) {
     uint8_t rx_buffer[5] = {0xAA, 0x02, 0x04, 0xD2, 0x88};
-    ProtocolPacket_t *out_pkt;
+    ProtocolPacket_t out_pkt;
 
-    parse_packet(&rx_buffer, out_pkt);
+    parse_packet(rx_buffer, &out_pkt);
 
-    printf("Command ID: %d, payload: %d, CRC: %X", out_pkt->cmd, out_pkt->payload, out_pkt->crc);
+    printf("Command ID: %d, payload: %d, CRC: %X", out_pkt.cmd, out_pkt.payload, out_pkt.crc);
 
     return 0;
 }
