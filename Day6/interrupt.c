@@ -11,7 +11,7 @@ void ADC_IRQHandler(void) {
 
 uint8_t wait_for_adc_conversion(void);
 uint8_t wait_for_adc_conversion(void) {
-    while(!(adc_status_reg &= (1 << 2 ))) { //checks if bit 2 is 0
+    while(!(adc_status_reg & (1 << 2 ))) { //checks if bit 2 is 0
         int cycles = 0;
         while(cycles <= 5){
             if(cycles == 5){

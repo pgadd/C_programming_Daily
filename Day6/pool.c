@@ -49,12 +49,16 @@ int main(void) {
 
     uint8_t* buf5 = pool_alloc();
 
-    buf2 = "A";
-    printf("mem allocated: %X\n", buf2);
+    buf2[0] = 'A';
+    buf2[1] = 'R';
+    buf2[2] = 'M';
+    buf2[3] = '\0';
+    printf("Buffer 2 owns RAM Address %p and contains string: '%s'\n", (void*)buf2, buf2);
+
     pool_free(buf2);
 
     uint8_t* buf6 = pool_alloc();
-    printf("mem allocated: %X\n", buf6);
+    printf("mem allocated: %p\n", (void*)buf6);
 
     return 0;
 

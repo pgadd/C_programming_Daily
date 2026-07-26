@@ -48,6 +48,7 @@ int rb_pop(RingBuffer_t *rb, uint8_t *data_out){
 
 int main(void) {
     RingBuffer_t buffer;
+    rb_init(&buffer);
 
     rb_push(&buffer, 0xA1);
     rb_push(&buffer, 0xA2);
@@ -61,13 +62,13 @@ int main(void) {
 
     rb_push(&buffer, 0xA9);
 
-    const uint8_t *out;
-    rb_pop(&buffer, out);
-    printf("data dropped: %X\n", *out);
-    rb_pop(&buffer, out);
-    printf("data dropped: %X\n", *out);
-    rb_pop(&buffer, out);
-    printf("data dropped: %X\n", *out);
+    const uint8_t *out = 0;
+    rb_pop(&buffer, &out);
+    printf("data dropped: %X\n", out);
+    rb_pop(&buffer, &out);
+    printf("data dropped: %X\n", out);
+    rb_pop(&buffer, &out);
+    printf("data dropped: %X\n", out);
 
     rb_push(&buffer, 0xB1);
     rb_push(&buffer, 0xB2);
