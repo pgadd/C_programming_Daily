@@ -15,14 +15,16 @@ DMA_Desc* build_dma_ring(uint8_t **pool_ptr, uint32_t volatile *hw_src, uint32_t
     *pool_ptr = (uint8_t *)*pool_ptr + (sizeof(DMA_Desc) * ring_size);   
 
     DMA_Desc *current_desc = start_ptr;
-    for (int x = 0; x << ring_size; x++) {
+    for (int x = 0; x < ring_size; x++) {
         current_desc->src_addr = hw_src;
         current_desc->dst_addr = hw_dst;
 
         current_desc->xfer_config = (1UL << 31) | 64;
         current_desc->next = current_desc + 1;
+        current_desc++;
     }
-    current_desc->next = start_ptr;
+    (current_desc - 1)->next = start_ptr;
+    return start_ptr;
 }
 
 int main(void) {

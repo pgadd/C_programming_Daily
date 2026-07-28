@@ -23,16 +23,17 @@ typedef struct {
 
 void safe_enable_irq(Safe_Regs_t *reg);
 void safe_enable_irq(Safe_Regs_t *reg){
-    reg->IFR = 0x00000010;
+    reg->IFR = 0x00000000;
 }
 
 int main(void) {
     uint32_t var = 0x00000004;
-    unsafe_enable_irq((Unsafe_IFR_t*)var);
+    unsafe_enable_irq((Unsafe_IFR_t*)&var);
+    printf("Unsafe RMW Result: 0x%08X (Notice Bit 2 is still 1 because RMW wrote 1 back to it!)\n", var);
 
     var = 0x00000004;
     safe_enable_irq((Safe_Regs_t*)var);
-
+    printf("Safe Bitwise Result: 0x%08X (Bit 7 HIGH, Bit 2 written as 0, preserving error state)\n", var);
     return 0;
 }
 
