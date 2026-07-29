@@ -1,3 +1,5 @@
+//Sample STM32 HAL GPIO library functions implementation
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
