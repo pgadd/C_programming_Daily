@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-// 1. Standard STM32 Pin States
+
 typedef enum {
     GPIO_PIN_RESET = 0U,
     GPIO_PIN_SET   = 1U
@@ -31,6 +31,10 @@ typedef struct {
 } GPIO_InitTypeDef;
 
 void CUSTOM_HAL_GPIO_Init(GPIO_TypeDef *GPIOx, GPIO_InitTypeDef *GPIO_Init);
+
+void CUSTOM_HAL_GPIO_WritePin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin, GPIO_PinState PinState);
+
+
 void CUSTOM_HAL_GPIO_Init(GPIO_TypeDef *GPIOx, GPIO_InitTypeDef *GPIO_Init){
     for (uint8_t pin = 0; pin < 15; pin ++){
         if (GPIO_Init->Pin & (1UL << pin)){
@@ -45,7 +49,6 @@ void CUSTOM_HAL_GPIO_Init(GPIO_TypeDef *GPIOx, GPIO_InitTypeDef *GPIO_Init){
     }
 }
 
-void CUSTOM_HAL_GPIO_WritePin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin, GPIO_PinState PinState);
 void CUSTOM_HAL_GPIO_WritePin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin, GPIO_PinState PinState) {
     if (PinState == GPIO_PIN_SET)   {
         GPIOx->BSRR = GPIO_Pin;
