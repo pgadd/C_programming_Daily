@@ -65,36 +65,39 @@ uint8_t soft_spi_transfer_byte(SoftSPI_Handle_t *spi, uint8_t tx_byte);
 uint8_t soft_spi_transfer_byte(SoftSPI_Handle_t *spi, uint8_t tx_byte) {
     CUSTOM_HAL_GPIO_WritePin(spi->port, spi->pin_cs, GPIO_PIN_RESET);
     uint8_t tx_byte_original = tx_byte;
+    uint8_t rx_data = 0; // Separate accumulator!
 
-    for (uint8_t rx_byte = 0; rx_byte < 8; rx_byte++){
+    for (uint8_t i = 0; i < 8; i++) { // Separate loop counter!
+        // 1. Set MOSI
         if (tx_byte & 0x80) {
             CUSTOM_HAL_GPIO_WritePin(spi->port, spi->pin_mosi, GPIO_PIN_SET);
         } else {
             CUSTOM_HAL_GPIO_WritePin(spi->port, spi->pin_mosi, GPIO_PIN_RESET);
         }
 
+        // 2. Rising Edge
         CUSTOM_HAL_GPIO_WritePin(spi->port, spi->pin_sck, GPIO_PIN_SET);
 
+        // 3. Read MISO
         if (spi->port->IDR & spi->pin_miso) {
-            rx_byte |= 0x01;
+            rx_data |= 0x01;
         }
 
+        // 4. Falling Edge
         CUSTOM_HAL_GPIO_WritePin(spi->port, spi->pin_sck, GPIO_PIN_RESET);
 
-        if (rx_byte == 7) {
+        // 5. Shift bits (except on the last iteration)
+        if (i < 7) {
             tx_byte <<= 1;
-            rx_byte <<= 1;
+            rx_data <<= 1;
         }
-
-        CUSTOM_HAL_GPIO_WritePin(spi->port, spi->pin_cs, GPIO_PIN_SET);
-
-        spi->on_transfer_complete(tx_byte_original, rx_byte);
-
-        return rx_byte;
     }
 
+    CUSTOM_HAL_GPIO_WritePin(spi->port, spi->pin_cs, GPIO_PIN_SET);
+    spi->on_transfer_complete(tx_byte_original, rx_data);
+    
+    return rx_data; // Return OUTSIDE the loop!
 }
-
 
 void spi_cb(uint8_t tx, uint8_t rx);
 void spi_cb(uint8_t tx, uint8_t rx) {

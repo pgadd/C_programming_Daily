@@ -39,10 +39,10 @@ void CUSTOM_HAL_GPIO_Init(GPIO_TypeDef *GPIOx, GPIO_InitTypeDef *GPIO_Init){
         if (GPIO_Init->Pin & (1UL << pin)){
             uint32_t shift = (pin * 2U);
 
-            GPIOx -> MODER &= ~(0b11 << shift);
+            GPIOx -> MODER &= ~(3UL << shift);
             GPIOx -> MODER |= (GPIO_Init->Mode << shift);
 
-            GPIOx->PUPDR &= ~(0b11 << shift);
+            GPIOx->PUPDR &= ~(3UL << shift);
             GPIOx->PUPDR |= (GPIO_Init->Pull << shift);
         }
     }
