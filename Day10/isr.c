@@ -23,9 +23,9 @@ void my_led_toggle_callback(void);
 void my_led_toggle_callback(void){
     GPIO_TypeDef portA;
 
-    portA.BSRR = 5;
+    portA.BSRR = (1 << 5);
     printf("output: %X", portA.BSRR);
-    portA.BSRR = (5 << 16);
+    portA.BSRR = (1 << (5+ 16));
     printf("output: %X", portA.BSRR);
     
 }
@@ -44,6 +44,8 @@ int main(void) {
     TIM_TypeDef sim_tim2;
     sim_tim2.SR |= 1;
 
+    register_timer_isr(my_led_toggle_callback);
+    
     TIM2_IRQHandler(&sim_tim2);
     printf("SR value: %x", sim_tim2.SR);
 

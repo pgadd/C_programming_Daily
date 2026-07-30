@@ -18,7 +18,7 @@ void init_pwm_channel1(TIM_PWM_TypeDef *tim, uint32_t pwm_freq_hz, uint8_t duty_
     tim -> ARR = ((uint32_t)(16000000/pwm_freq_hz) - 1);
     tim->CCR1 = (tim->ARR * duty_percent) / 100;
 
-    tim -> CCMR1 |= (0b110 << 26);
+    tim -> CCMR1 |= (0b11 << 5);
 
     tim -> CCER |= 1;
 
