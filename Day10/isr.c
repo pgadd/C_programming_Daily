@@ -45,6 +45,7 @@ int main(void) {
     sim_tim2.SR |= 1;
 
     TIM2_IRQHandler(&sim_tim2);
+    printf("SR value: %x", sim_tim2.SR);
 
     return 0;
 }
