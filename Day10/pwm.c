@@ -32,6 +32,6 @@ int main(void){
 
     init_pwm_channel1(&sample, 10000, 25);
 
-    printf("ARR: %d, CCR1: %d", sample.ARR, sample.CCR1);
+    printf("ARR: %X, CCR1: %X", sample.ARR, sample.CCR1);
 
 }
