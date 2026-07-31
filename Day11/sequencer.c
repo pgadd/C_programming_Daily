@@ -20,20 +20,20 @@ typedef struct {
 
 void read_sensor_sequence(ADC_TypeDef *adc, SensorData_t *output_struct);
 void read_sensor_sequence(ADC_TypeDef *adc, SensorData_t *output_struct){
-    adc->SQR1 |= (2 << 23);
+    adc->SQR1 |= (2 << 20);
 
-    adc -> SQR3 |= (output_struct -> v_batt);
-    adc -> SQR3 |= (output_struct -> temp << 4);
-    adc -> SQR3 |= (output_struct -> light << 8);
+    adc->SQR3 |= (1UL) | (5UL << 5) | (8UL << 10);
 
     adc -> CR2 |= (1);
     adc -> CR2 |= (1 << 30);
 
     uint16_t *dest_ptr = (uint16_t*)output_struct;
-    for (int x = 0; x <<3; x++) {
-        if (adc -> SR &= (1 << 1)){
-            adc->DR |= *dest_ptr;
+    for (int x = 0; x < 3; x++) {
+        while (!(adc->SR & (1 << 1))) {
+            // Blocking wait for EOC flag
         }
+
+        *dest_ptr = (uint16_t)adc->DR;
         dest_ptr++;
     }
 
@@ -44,7 +44,6 @@ int main(void){
     ADC_TypeDef sim_adc = {0};
     SensorData_t my_sensors = {0};
 
-    
-
+    read_sensor_sequence(&sim_adc, &my_sensors);
     return 0;
 }

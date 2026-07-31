@@ -30,7 +30,7 @@ static ADC_Context_t adc_ctx;
 
 void start_async_adc(ADC_TypeDef *adc, uint16_t **data_pool_head);
 void start_async_adc(ADC_TypeDef *adc, uint16_t **data_pool_head){
-    *adc_ctx.storage_ptr = **data_pool_head;
+    adc_ctx.storage_ptr = *data_pool_head;
 
     adc_ctx.state = ADC_STATE_READING_CH1;
 
@@ -45,21 +45,25 @@ void start_async_adc(ADC_TypeDef *adc, uint16_t **data_pool_head){
 void ADC_IRQHandler(ADC_TypeDef *adc);
 void ADC_IRQHandler(ADC_TypeDef *adc) {
     if(adc->SR & (1 << 1)){
-        printf("EOC is set in SR");
+        printf("EOC is set in SR\n");
 
         switch(adc_ctx.state){
             case (ADC_STATE_READING_CH1):
                 *(adc_ctx.storage_ptr) = adc->DR;
                 adc_ctx.storage_ptr++;
+
                 adc->SQR3 = (0x15 << 4);
                 adc->CR2 |= (1 << 30);
                 adc_ctx.state = ADC_STATE_READING_CH5;
+                break;
             case(ADC_STATE_READING_CH5):
                 *(adc_ctx.storage_ptr) = adc->DR;
                 adc_ctx.storage_ptr++;
                 adc_ctx.state = ADC_STATE_COMPLETE;
+                adc->SR &= ~(1 << 1);             // Clear flag
+                break;
             default:
-                return;
+                break;
 
         }
     }
@@ -76,11 +80,13 @@ int main(void){
     sim_adc.DR = 1045;
     ADC_IRQHandler(&sim_adc);
 
+    printf("index 0: %d, index 1: %d\n", adc_ram_pool[0], adc_ram_pool[1]);
+
     sim_adc.SR |= (1 << 1); 
     sim_adc.DR = 3099;
     ADC_IRQHandler(&sim_adc);
 
-    printf("index 0: %d, index 1: %d", adc_ram_pool[0], adc_ram_pool[1]);
+    printf("index 0: %d, index 1: %d\n", adc_ram_pool[0], adc_ram_pool[1]);
 
     return 0;
 }

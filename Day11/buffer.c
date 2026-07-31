@@ -18,12 +18,17 @@ void process_adc_sample(ADC_Filter_t *filter, uint16_t new_sample){
     filter->running_sum = (uint32_t)(filter->running_sum - *filter->head);
 
     filter->running_sum += (uint32_t)new_sample;
-    *filter->head = new_sample;
+    *(filter->head) = new_sample;
 
     filter->head++;
-    if(*filter->head == filter->buffer_start + 8){
+    if(filter->head == filter->buffer_start + 8){
         filter->head = filter->buffer_start;
     }
+
+    if (filter->count < 8) {
+        filter->count++;
+    }
+
 
     if(filter -> count == 8){
         if((filter -> running_sum >> 3) > 3000) {
@@ -35,23 +40,23 @@ void process_adc_sample(ADC_Filter_t *filter, uint16_t new_sample){
 
 void callback(uint16_t avg_val);
 void callback(uint16_t avg_val){
-    printf("[ALERT] Threshold Exceeded! Avg: %d", avg_val);
+    printf("[ALERT] Threshold Exceeded! Avg: %d\n", avg_val);
 }
 
 
 int main(void){
     uint16_t raw_ram[8] = {0};
-    ADC_Filter_t sample;
+    ADC_Filter_t filter = {0};
 
-    *sample.buffer_start = raw_ram[0];
-    *sample.head = raw_ram[0];
-    sample.on_threshold_exceeded = &callback;
+    filter.buffer_start = raw_ram;
+    filter.head = raw_ram;
+    filter.on_threshold_exceeded = callback;
 
-    uint16_t data[9] = {2000, 2100, 2050, 4000, 4050, 4095, 3900, 4000, 4000, 4050};
-    uint8_t *pnt = &data;
+    uint16_t data[10] = {2000, 2100, 2050, 4000, 4050, 4095, 3900, 4000, 4000, 4050};
+    uint16_t *pnt = data;
 
-    for (int x = 0; x <<8; x++){
-        process_adc_sample(&sample, *pnt);
+    for (int x = 0; x < 10; x++){
+        process_adc_sample(&filter, *pnt);
         pnt++;
     }
 
