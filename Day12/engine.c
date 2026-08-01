@@ -15,7 +15,6 @@ typedef struct {
     uint16_t step_size;   // How much to increment/decrement per call
 } BreathingCtx_t;
 
-// Assume Day 10 Timer Struct
 typedef struct { uint32_t volatile ARR; uint32_t volatile CCR1; } TIM_TypeDef;
 
 void update_breathing_led(TIM_TypeDef *tim, BreathingCtx_t *ctx);
