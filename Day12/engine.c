@@ -28,11 +28,13 @@ void update_breathing_led(TIM_TypeDef *tim, BreathingCtx_t *ctx) {
             }
             break;
         case (FADE_DOWN):
-            ctx->current_pwm -= ctx->step_size;
             if (ctx->current_pwm < ctx->step_size){
-                ctx->step_size = 0;
+                ctx->current_pwm = 0;
                 ctx->state = FADE_UP;
+            } else{
+                ctx->current_pwm -= ctx->step_size;
             }
+            break;
 
     }
 

@@ -21,9 +21,9 @@ void process_dma_transfer(DMA_Sim_t *dma, TIM_TypeDef *tim) {
 
     dma->current_ptr++;
 
-    uint16_t end_addy = *(dma->buffer_start) + dma->buffer_length;
+    uint16_t *end_addy = dma->buffer_start + dma->buffer_length;
 
-    if (*(dma->current_ptr) == end_addy) {
+    if (dma->current_ptr == end_addy) {
         dma->current_ptr = dma->buffer_start;
     }
 
