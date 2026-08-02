@@ -30,27 +30,28 @@ typedef struct {
 
 void UART_RX_IRQHandler(UART_TypeDef *uart);
 void UART_RX_IRQHandler(UART_TypeDef *uart) {
-    if (uart -> SR & (1 << 5)){
-        rx_ctx.head = uart -> DR;
+    if (uart->SR & (1 << 5)) { // Check RXNE
+        // FIX: Dereference pointer to write the byte into RAM
+        *rx_ctx.head = (char)uart->DR;
 
-        if (*rx_ctx.head == '\n'){
-            uart -> DR = '\0';
+        if (*rx_ctx.head == '\n') {
+            // FIX: Overwrite the RAM buffer, not the hardware register
+            *rx_ctx.head = '\0'; 
             rx_ctx.on_cmd_ready(rx_ctx.buffer_start);
 
-            rx_ctx.head = rx_ctx.buffer_start;
+            rx_ctx.head = rx_ctx.buffer_start; // Reset for next command
             return;
         }
 
-        rx_ctx.head++;
+        rx_ctx.head++; // Advance pointer
     }
 
-    uint16_t *end_addr = rx_ctx.buffer_length + rx_ctx.buffer_start;
+    // FIX: Maintain char* type for memory boundary check
+    char *end_addr = rx_ctx.buffer_start + rx_ctx.buffer_length;
 
     if (rx_ctx.head == end_addr) {
-
-        rx_ctx.head = rx_ctx.buffer_start;
+        rx_ctx.head = rx_ctx.buffer_start; // Prevent buffer overflow
     }
-
 }
 
 int main(void){

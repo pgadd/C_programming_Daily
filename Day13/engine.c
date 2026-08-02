@@ -39,16 +39,17 @@ void start_async_tx(UART_TypeDef *uart, char *string_start, uint16_t length) {
 
 void UART_TX_IRQHandler(UART_TypeDef *uart);
 void UART_TX_IRQHandler(UART_TypeDef *uart) {
-    if ((uart->SR & (1 << 7)) && (uart -> CR1 & (1 << 7))){
+    if ((uart->SR & (1 << 7)) && (uart->CR1 & (1 << 7))) {
+        
         if (tx_ctx.current_char < tx_ctx.end_addr) {
-            uart->DR = tx_ctx.current_char;
-
+            // FIX: Dereference to fetch the actual ASCII char from RAM
+            uart->DR = *tx_ctx.current_char; 
             tx_ctx.current_char++;
         } else {
+            // Stop condition: disable the interrupt so it stops firing!
             uart->CR1 &= ~(1 << 7);
         }
     } 
-
 }
 
 int main(void) {

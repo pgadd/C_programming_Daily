@@ -22,7 +22,7 @@ typedef struct {
 void uart_print_blocking(UART_TypeDef *uart, const char *str);
 void uart_print_blocking(UART_TypeDef *uart, const char *str) {
     while (*str != '\0'){
-        while (~(uart -> SR & (1 << 7))) {
+        while (!(uart -> SR & (1 << 7))) {
 
         }
 
