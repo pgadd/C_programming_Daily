@@ -12,15 +12,14 @@ typedef struct {
 
 void enable_nvic_irq(NVIC_TypeDef *nvic, uint8_t irq_number);
 void enable_nvic_irq(NVIC_TypeDef *nvic, uint8_t irq_number) {
-
-    uint32_t index = irq_number/32;
-
+    uint32_t index = irq_number / 32;
     uint32_t position = irq_number % 32;
 
-    uint32_t *bit = nvic->ISER + index;
+    // Perfect pointer arithmetic!
+    uint32_t *target_register = nvic->ISER + index;
 
-    *bit |= 1;
-
+    // FIX: Shift the 1 by the calculated position
+    *target_register |= (1UL << position);
 }
 
 int main(void){

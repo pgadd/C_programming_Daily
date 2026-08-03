@@ -25,12 +25,18 @@ GPIO_TypeDef* resolve_gpio_port(uint32_t base, uint32_t bus_offset, uint32_t por
 int main(void){
     uint8_t fake_ram_block[2048] = {0};
 
-    uint32_t: (uint32_t)(uintptr_t)fake_ram_block;
+    // FIX: Properly declare the variable holding the address of your fake RAM
+    uint32_t simulated_base = (uint32_t)(uintptr_t)fake_ram_block;
 
-    GPIO_TypeDef *mem = resolve_gpio_port(0, 0, 1024);
+    // FIX: Pass the simulated base address!
+    GPIO_TypeDef *mem = resolve_gpio_port(simulated_base, 0, 1024);
 
     mem->MODER = 0xFF;
-    mem->BSRR |= (1 <<5);
+    mem->BSRR |= (1 << 5);
 
-    printf("address: %d", fake_ram_block);
+    // Verify the math: the pointer difference should be exactly 1024 bytes
+    printf("Base Address: %p\n", (void*)fake_ram_block);
+    printf("Resolved Address: %p\n", (void*)mem);
+    
+    return 0;
 }

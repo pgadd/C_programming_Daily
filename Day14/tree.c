@@ -17,19 +17,18 @@ typedef struct {
 void system_clock_config(RCC_TypeDef *rcc);
 void system_clock_config(RCC_TypeDef *rcc){
     rcc->PLLCFGR &= ~(1 << 1);
-    rcc -> PLLCFGR &= ~(0x127 << 8);
-
-    rcc -> PLLCFGR |= (4 << 14);
+    
+    // FIX: 7-bit mask is 0x7F. Shift it to bit 8.
+    rcc->PLLCFGR &= ~(0x7FUL << 8); 
+    // FIX: Shift the value '4' to start at bit 8.
+    rcc->PLLCFGR |= (4UL << 8);
 
     rcc->CR |= (1 << 24);
+    while (!(rcc->CR & (1 << 25))){ }
 
-    while (!(rcc->CR & (1 << 25))){
-
-    }
-
-    rcc -> CFGR &= ~(0x15 << 4);
-
-    rcc -> CFGR |= (0b11);
+    // FIX: 4-bit mask is 0xF. Shift to bit 4.
+    rcc->CFGR &= ~(0xFUL << 4);
+    rcc->CFGR |= (0b11);
 }
 
 int main(void) {
