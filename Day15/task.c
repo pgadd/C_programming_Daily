@@ -44,20 +44,28 @@ void vTaskDelay(uint32_t ticks) {
 // CONSTRAINT: Protect against pointer dereferencing traps (check for NULL params).
 void Hardware_Control_Task(void *pvParameters);
 void Hardware_Control_Task(void *pvParameters) {
-    HardwareConfig_t *ptr = pvParameters;
+    while(1){
 
-    switch(*(ptr->state_ptr)) {
-        case(TASK_STATE_INIT):
-            break;
-        case(TASK_STATE_RUN):
-            ptr->port->BSRR |= (1 << ptr->pin_number);
-            break;
-        case(TASK_STATE_ERROR):
-            ptr->port->BSRR |= (1 << (ptr->pin_number+16));
-            break;
+        HardwareConfig_t *ptr = pvParameters;
+        if(pvParameters == NULL){
+            return;
+        }
+
+        switch(*(ptr->state_ptr)) {
+            case(TASK_STATE_INIT):
+                break;
+            case(TASK_STATE_RUN):
+                ptr->port->BSRR = (1 << ptr->pin_number);
+                break;
+            case(TASK_STATE_ERROR):
+                ptr->port->BSRR = (1 << (ptr->pin_number+16));
+                break;
+        }
+
+        vTaskDelay(100);
+
     }
-
-    vTaskDelay(100);
+    
 }
 
 int main(void){

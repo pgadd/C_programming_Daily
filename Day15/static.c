@@ -33,12 +33,10 @@ static uint32_t allocated_tasks = 0;
 void Allocate_System_Task(TaskFunction_t task_func, void *params, TaskHandle_t **ppxTaskHandle);
 void Allocate_System_Task(TaskFunction_t task_func, void *params, TaskHandle_t **ppxTaskHandle){
     if (allocated_tasks >= MAX_TASKS) {
-        
+        return;
     }
-
-    StaticTask_t *ptr = task_tcb_pool;
-
-    StackType_t *task = task_stack_pool;
+    StaticTask_t *tcb_ptr = task_tcb_pool + allocated_tasks;
+    StackType_t *stack_ptr = task_stack_pool + (allocated_tasks * STACK_DEPTH);
 
     xTaskCreateStatic(task_func, "sopme name", STACK_DEPTH, NULL, 1, *ppxTaskHandle);
 

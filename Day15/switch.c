@@ -20,7 +20,7 @@ void Trigger_PendSV_Context_Switch(void);
 void Trigger_PendSV_Context_Switch(void) {
     uint32_t *ptr = (uint32_t*)SCB_BASE_PTR;
     ptr++;
-    *ptr |= (1UL << 28);
+    *ptr = (1UL << 28);
 }
 
 int main(void){
