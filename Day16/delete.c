@@ -76,7 +76,7 @@ void vTaskDelete(TaskHandle_t xTaskToDelete) {
 // Do NOT overwrite other bits in the SCR.
 void vApplicationIdleHook(void) {
     // 1. Create a safe volatile pointer to the SCR register
-    
+    volatile uint32_t *ptr = SCB_BASE_PTR->SCR;
     // 2. Set bit 2 (SLEEPDEEP) using 1UL
     
     // 3. Execute the WFI instruction (Simulate it via printf for this exercise)
