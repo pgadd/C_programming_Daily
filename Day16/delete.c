@@ -76,11 +76,13 @@ void vTaskDelete(TaskHandle_t xTaskToDelete) {
 // Do NOT overwrite other bits in the SCR.
 void vApplicationIdleHook(void) {
     // 1. Create a safe volatile pointer to the SCR register
-    volatile uint32_t *ptr = SCB_BASE_PTR->SCR;
-    // 2. Set bit 2 (SLEEPDEEP) using 1UL
+    volatile uint32_t *scr = &SCB_BASE_PTR->SCR;
     
+    // 2. Set bit 2 (SLEEPDEEP) using 1UL
+    *scr |= (1UL << 2);
     // 3. Execute the WFI instruction (Simulate it via printf for this exercise)
-    // printf("[HARDWARE] WFI Executed. CPU Sleeping...\n");
+    printf("[HARDWARE] WFI Executed. CPU Sleeping...\n");
+
 }
 
 
@@ -93,12 +95,16 @@ void ADC1_Interrupt_Handler(TaskHandle_t target_task) {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
     // 1. Safely point to the ADC1 SR register
-    
+    volatile uint32_t *sr = &ADC1_BASE_PTR->SR;
+
     // 2. Clear bit 1 (EOC) using bitwise AND combined with a bitwise NOT (Clear-then-set methodology).
-    
+    *sr &= ~(1UL << 1);
+
     // 3. Notify the target_task.
+    vTaskNotifyGiveFromISR(target_task, &xHigherPriorityTaskWoken);
     
     // 4. Yield if necessary.
+    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
 
@@ -111,9 +117,13 @@ void ADC_Processing_Task(void *pvParameters) {
     uint32_t **buffer_pp = (uint32_t **)pvParameters;
     
     // Check for NULL parameters
+    if (buffer_pp == NULL) {
+        while(1) {}
+    }
     
     while (1) {
         // 1. Wait indefinitely for a notification (use ulTaskNotifyTake, clear count on exit)
+        ulTaskNotifyTake( pdTRUE , portMAX_DELAY );
         
         printf("[TASK] Waking up to process data...\n");
 
@@ -124,6 +134,15 @@ void ADC_Processing_Task(void *pvParameters) {
         // If any value is > 4095, print a fault message, and delete THIS task (using NULL).
         // If a task deletes itself, it must immediately enter an infinite loop (while(1);) 
         // because vTaskDelete(NULL) might not return immediately depending on the port.
+        for (int i = 0; i < 5; i++){
+            if (*data_ptr > 4097){
+            printf("fault message");
+            vTaskDelete(NULL);
+
+            while(1);
+            }
+            data_ptr++;
+        }
         
         
         printf("[TASK] Buffer processed successfully.\n");
