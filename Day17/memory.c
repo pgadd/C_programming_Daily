@@ -87,15 +87,18 @@ void UART1_IRQHandler(void) {
 // 3. Atomically SET Bit 0 in CR to start encryption (using |= is safe here ONLY because we hold the Mutex!).
 // 4. Give the crypto_mutex back.
 void Secure_Crypto_Task(void *pvParameters) {
+
+    volatile CRYPTO_TypeDef *ptr = CRYPTO_BASE_PTR;
+
     while(1) {
         // Implement logic here
         xSemaphoreTake(crypto_mutex, portMAX_DELAY);
 
-        CRYPTO_TypeDef *ptr = CRYPTO_BASE_PTR;
-
         ptr->CR |= 1UL;
 
         xSemaphoreGive(crypto_mutex);
+
+        vTaskDelay(10);
     }
 }
 
@@ -118,7 +121,9 @@ void Allocate_DMA_Channel(DMA_Channel_t **assigned_dma) {
     for (int i = 0; i < 3; i++){
         if(ptr->in_use == 0) {
             ptr->in_use = 1;
-            *assigned_dma = ptr->dma_id; 
+            *assigned_dma = ptr; 
+
+            break;
         }
         ptr++;
     }
