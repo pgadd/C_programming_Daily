@@ -51,8 +51,8 @@ void portYIELD_FROM_ISR(BaseType_t xHigherPriorityTaskWoken);
 // YOUR JOB: Define the static arrays required for the queue here.
 // You need a StaticQueue_t variable and a uint8_t array sized correctly for 5 uint32_t items.
 
-StaticQueue_t variable;
-uint8_t buffer_portable[5 * sizeof(uint32_t)];
+static StaticQueue_t cmd_queue_tcb;
+static uint8_t cmd_queue_buffer[CMD_QUEUE_LEN * CMD_ITEM_SIZE];
 
 // ==========================================
 // 3. YOUR IMPLEMENTATION AREA
@@ -62,7 +62,12 @@ uint8_t buffer_portable[5 * sizeof(uint32_t)];
 // Goal: Allocate the queue using your static memory blocks and return the handle via the double pointer.
 void Init_Command_Queue(QueueHandle_t **queue_handle_ptr) {
     // Implement logic here. Assign the result to **queue_handle_ptr.
-    **queue_handle_ptr = xQueueCreateStatic(5, 32, buffer_portable, &variable);
+    *queue_handle_ptr = xQueueCreateStatic(
+        CMD_QUEUE_LEN, 
+        CMD_ITEM_SIZE, 
+        cmd_queue_buffer, 
+        &cmd_queue_tcb
+    );
 
 }
 
@@ -80,6 +85,8 @@ void UART1_IRQHandler(QueueHandle_t target_queue) {
     uart->DR &= ~(1UL << 5);
 
     xQueueSendFromISR(target_queue, &uart_data, &higher_priority_task_woken);
+
+    portYIELD_FROM_ISR(higher_priority_task_woken);
 }
 
 // Challenge 3: The Processing Task (Receive & Peek)
@@ -91,24 +98,36 @@ void UART1_IRQHandler(QueueHandle_t target_queue) {
 //    - If command == 2: Atomically RESET GPIOA Pin 5 via BSRR (using the upper 16 bits).
 // CONSTRAINT: Safely cast pvParameters to a QueueHandle_t pointer and handle NULL traps.
 void Command_Processor_Task(void *pvParameters) {
+
+    if (pvParameters == NULL) {
+        while(1); 
+    }
+
+    QueueHandle_t cmd_queue = (QueueHandle_t)pvParameters;
+
     while(1) {
         // Implement logic here.
-        QueueHandle_t queue;
-        uint32_t dummy;
+        uint32_t command = 0;
+        uint32_t dummy = 0;
 
-        xQueuePeek(&queue, pvParameters, 100);
+        xQueuePeek(cmd_queue, pvParameters, 100);
 
-        if(pvParameters == 0xFFFFFFFF) {
-            dummy = xQueueReceive(queue, pvParameters, 100);
+        if (xQueuePeek(cmd_queue, &command, 100) == pdPASS) {
+            
+            if (command == 0xFFFFFFFF) {
+                // It's a fault packet. RECEIVE it into a dummy variable to permanently remove it
+                xQueueReceive(cmd_queue, &dummy, 0);
+            } else {
+                // It's a valid command. RECEIVE it to remove it from the queue
+                xQueueReceive(cmd_queue, &command, 0);
+                
+                // Execute hardware logic (Your atomic writes here were perfect)
+                if (command == 1) {
+                    GPIOA_BASE_PTR->BSRR = (1UL << 5);
+                } else if (command == 2) {
+                    GPIOA_BASE_PTR->BSRR = (1UL << (5 + 16U));
+                }
+            }
         }
-
-        if(pvParameters == 1) {
-            GPIOA_BASE_PTR->BSRR = (1UL << 5);
-        }
-
-        if(pvParameters == 2) {
-            GPIOA_BASE_PTR->BSRR = (1UL << (5 + 16));
-        }
-
     }
 }
