@@ -89,11 +89,13 @@ void Configure_ADC_Interrupt_Priority(uint8_t irq_number, uint8_t target_priorit
 
     uint32_t bit_shift = byte_offset * 8;
 
-    uint32_t *ptr = nvic -> IPR;
+    volatile uint32_t *ptr = nvic -> IPR;
 
     ptr += target_register;
 
-    *ptr |= ((uint32_t)target_priority << byte_offset);
+    *ptr &= ~(0xFFUL << bit_shift);
+
+    *ptr |= ((uint32_t)target_priority << bit_shift);
 
 }
 
@@ -107,11 +109,11 @@ void Configure_ADC_Interrupt_Priority(uint8_t irq_number, uint8_t target_priorit
 void ADC1_IRQHandler(void) {
     BaseType_t higher_priority_task_woken = pdFALSE;
     // Implement logic here
-    ADC_TypeDef *ptr = ADC1_BASE_PTR;
+    volatile ADC_TypeDef *ptr = ADC1_BASE_PTR;
 
     uint16_t var = ptr->DR;
 
-    ptr->SR &= ~(1 << 1);
+    ptr->SR &= ~(1UL << 1);
 
     xQueueSendFromISR(adc_queue, &var, &higher_priority_task_woken);
 
@@ -134,21 +136,38 @@ void ADC_Processing_Task(void *pvParameters) {
         while(1){};
     }
 
-    xQueueReceive(adc_queue, pvParameters, portMAX_DELAY);
+    QueueHandle_t active_queue = (QueueHandle_t)pvParameters;
 
-    if (pvParameters < 2000) {
-        current_sensor_state = SENSOR_STATE_NORMAL;
-    } else if (pvParameters >= 2000) {
-        current_sensor_state = SENSOR_STATE_ALARM;
+    while(1){
+
+        uint16_t sensor_val = 0;
+
+        xQueueReceive(active_queue, &sensor_val, portMAX_DELAY);
+
+        if (sensor_val < 2000) {
+            current_sensor_state = SENSOR_STATE_NORMAL;
+        } else if (sensor_val >= 2000) {
+            current_sensor_state = SENSOR_STATE_ALARM;
+        }
+
+        switch (current_sensor_state){
+            case SENSOR_STATE_NORMAL:
+                GPIOB_BASE_PTR -> BSRR = (1UL << (3 + 16));
+                break;
+            case SENSOR_STATE_ALARM:
+                GPIOB_BASE_PTR -> BSRR = (1UL << 3);
+                break;
+            case SENSOR_STATE_IDLE:
+                break;
+        }
+
     }
+    
 
-    switch (current_sensor_state){
-        case(SENSOR_STATE_NORMAL):
-            GPIOB_BASE_PTR -> BSRR = (1UL << (3 + 16));
-            break;
-        case(SENSOR_STATE_ALARM):
-            GPIOB_BASE_PTR -> BSRR = (1UL << 3);
-            break;
-    }
+}
 
+int main(void) {
+
+
+    return 0;
 }
