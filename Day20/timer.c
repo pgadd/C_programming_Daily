@@ -108,9 +108,8 @@ void ADC_Poller_Callback(TimerHandle_t xTimer) {
     volatile ADC_TypeDef *ptr = (volatile ADC_TypeDef *)pvTimerGetTimerID(xTimer);
     uint32_t local = 0;
 
-    if (ADC1_BASE_PTR->SR & (1UL << 1)){
-        local = ADC1_BASE_PTR->DR;
-        ADC1_BASE_PTR->DR &= ~(0xFFFFFFFF);
+    if (ptr->SR & (1UL << 1)){
+        local = ptr->DR;
     }
 
     printf("[POLLER] ADC read: %d\n", local);
