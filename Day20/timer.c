@@ -92,7 +92,7 @@ void Watchdog_Callback(TimerHandle_t xTimer) {
     // Implement logic here
     volatile GPIO_TypeDef *ptr = pvTimerGetTimerID(xTimer);
 
-    ptr->BSRR = (1 << (8 + 16U));
+    ptr->BSRR = (1UL << (8 + 16U));
     
 }
 
@@ -114,6 +114,7 @@ void ADC_Poller_Callback(TimerHandle_t xTimer) {
 
     printf("[POLLER] ADC read: %d\n", local);
 }
+
 
 int main(void){
     volatile TimerHandle_t **timer = &watchdog_timer;
