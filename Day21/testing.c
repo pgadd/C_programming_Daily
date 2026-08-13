@@ -58,11 +58,11 @@ void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName) {
     char *ptr = pcTaskName;
 
     for (;;) {
-        if(*ptr != "\0") {
+        if(*ptr != '\0') {
             printf("%c\n", *ptr);
         }
-        if(*ptr == "\0") {
-            GPIOC_BASE_PTR->BSRR = (1 << 13);
+        if(*ptr == '\0') {
+            GPIOC_BASE_PTR->BSRR = (1UL << 13);
             while(1) {}
         }
 
@@ -84,8 +84,12 @@ void vApplicationIdleHook_Custom(SystemPerf_t **perf_state_ptr) {
         printf("NULL pointer");
         while(1) {};
     }
+    if (*perf_state_ptr == NULL){
+        printf("NULL pointer too");
+        while(1) {};
+    }
 
-    if((*perf_state_ptr)->idle_ticks == 0xFFFFFFFF){
+    if((*perf_state_ptr)->idle_ticks == UINT64_MAX){
         printf("Overflow reached");
         return;
     }
@@ -112,24 +116,23 @@ void Data_Integration_Task(void *pvParameters) {
     QueueHandle_t active_queue = (QueueHandle_t)pvParameters;
     
     while(1) {
-        SensorPacket_t *local = {0};
+        SensorPacket_t *local;
 
-        BaseType_t value = xQueueReceive(active_queue, local, portMAX_DELAY);
+        BaseType_t value = xQueueReceive(active_queue, &local, portMAX_DELAY);
 
         uint32_t sum = 0;
-        if(value == pdTRUE) {
+        if(value == pdTRUE && local != NULL) {
             uint8_t *ptr = local->payload;
             for (int x = 0; x < 4; x++){
-                sum += (uint32_t)ptr;
+                sum += *ptr;
                 ptr++;
             }
-        }
 
-        if(sum == local->checksum){
-            xTaskNotifyGive(actuator_task);
+            if(sum == local->checksum){
+                xTaskNotifyGive(actuator_task);
+             }
         }
 
     }
-    
 
 }
